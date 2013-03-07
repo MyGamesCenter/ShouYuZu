@@ -7,10 +7,10 @@
 //
 
 #import "CXViewController.h"
-#import "CXLetterViewController.h"
 #import "CXDailyExpressionViewController.h"
 #import "CXWordsViewController.h"
 #import "CXTranslateViewController.h"
+#import "CXMyInfoViewController.h"
 #import "Define.h"
 
 @implementation CXViewController
@@ -44,8 +44,10 @@
     NSFileManager *fm = [NSFileManager defaultManager];
     if (![fm fileExistsAtPath:DATA_FOLDER]) {
         [fm createDirectoryAtPath:DATA_FOLDER withIntermediateDirectories:YES attributes:nil error:NULL];
-        NSString *srcFilePath = [[NSBundle mainBundle] pathForResource:[kDailyExpressionFile lastPathComponent] ofType:nil];
-        [fm copyItemAtPath:srcFilePath toPath:kDailyExpressionFile error:NULL];
+        NSString *dailyFilePath = [[NSBundle mainBundle] pathForResource:[kDailyExpressionFile lastPathComponent] ofType:nil];
+        [fm copyItemAtPath:dailyFilePath toPath:kDailyExpressionFile error:NULL];
+        NSString *wordsFilePath = [[NSBundle mainBundle] pathForResource:[kWordsFile lastPathComponent] ofType:nil];
+        [fm copyItemAtPath:wordsFilePath toPath:kWordsFile error:NULL];
         
     }
 	
@@ -82,7 +84,7 @@
     itemBtn5.center = CGPointMake(centerX, centerY + 2*(kButtonWidth + kBtnPaddingY));
     [self.view addSubview:self.itemBtn5];
     
-    self.itemBtn6 = [KYItemButton buttonWithTarget:self action:@selector(itemBtn6Clicked) title:@"我的手语"];
+    self.itemBtn6 = [KYItemButton buttonWithTarget:self action:@selector(itemBtn6Clicked) title:@"更多"];
     itemBtn6.center = CGPointMake(centerX + kButtonWidth + kBtnPaddingX, centerY + 2*(kButtonWidth + kBtnPaddingY));
     [self.view addSubview:self.itemBtn6];
      */
@@ -124,6 +126,7 @@
 
 
 - (void)itemBtn1Clicked {
+    
     CXDailyExpressionViewController *viewCtrl = [[CXDailyExpressionViewController alloc] initWithStyle:UITableViewStylePlain];
     viewCtrl.title = @"日常用语";
     [self.navigationController pushViewController:viewCtrl animated:YES];
@@ -148,7 +151,7 @@
 
 - (void)itemBtn4Clicked {
     
-    CXLetterViewController *viewCtrl = [[CXLetterViewController alloc] init];
+    CXMyInfoViewController *viewCtrl = [[CXMyInfoViewController alloc] init];
     viewCtrl.title = @"我的手语";
     [self.navigationController pushViewController:viewCtrl animated:YES];
     [viewCtrl release];

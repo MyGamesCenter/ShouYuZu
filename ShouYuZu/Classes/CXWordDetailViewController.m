@@ -71,7 +71,8 @@
         return;
     }
     
-    HTMLNode *bodyNode = [parser body];    NSString *bodyString = [bodyNode rawContents];
+    HTMLNode *bodyNode = [parser body];
+    NSString *bodyString = [bodyNode rawContents];
     NSRange beginRange = [bodyString rangeOfString:@"<table"];
     NSRange endRange = [bodyString rangeOfString:@"<form"];
     NSMutableString *resultStr = [[NSMutableString alloc] init];

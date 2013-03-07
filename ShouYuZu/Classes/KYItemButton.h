@@ -8,12 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
-#define kButtonWidth    80
-#define kHalfBtnWidth   40
-#define kBtnOriginX     20
-#define kBtnOriginY     20
-#define kBtnPaddingX    20
-#define kBtnPaddingY    20
+#define kButtonWidth    100
+#define kHalfBtnWidth   50
+#define kBtnOriginX     40
+#define kBtnOriginY     40
+#define kBtnPaddingX    40
+#define kBtnPaddingY    40
 
 @interface KYItemButton : UIButton
 

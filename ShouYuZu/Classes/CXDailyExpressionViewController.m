@@ -14,6 +14,8 @@
 
 @property (nonatomic, retain)NSArray *listArray;
 
+- (void)updateData;
+
 @end
 
 @implementation CXDailyExpressionViewController
@@ -53,36 +55,6 @@
  
     // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
     // self.navigationItem.rightBarButtonItem = self.editButtonItem;
-    
-    if (![[NSFileManager defaultManager] fileExistsAtPath:kDailyExpressionFile]) {
-        
-        NSError *error = nil;
-        HTMLParser *parser = [[HTMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:@"http://www.52shouyu.com/juzi.htm"] error:&error];
-        
-        if (error) {
-            NSLog(@"Error: %@", error);
-            return;
-        }
-        
-        HTMLNode *bodyNode = [parser body];
-        NSArray *aNodes = [bodyNode findChildTags:@"a"];
-        NSMutableArray *result = [[NSMutableArray alloc] init];
-        for (HTMLNode *aNode in aNodes) {
-            if ([[aNode getAttributeNamed:@"href"] hasPrefix:@"s.php?"]) {
-                NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[aNode getAttributeNamed:@"href"], @"href", [aNode contents], @"text", nil];
-                [result addObject:dict];
-            }
-        }
-        [parser release];
-        if (result.count > 0) {
-            self.listArray = result;
-            [result writeToFile:kDailyExpressionFile atomically:YES];
-            [result release];
-        }
-    }
-    else {
-        self.listArray = [[[NSArray alloc] initWithContentsOfFile:kDailyExpressionFile] autorelease];
-    }
 }
 
 - (void)viewDidUnload
@@ -95,6 +67,7 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    [self updateData];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -116,6 +89,48 @@
 {
     // Return YES for supported orientations
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+
+- (void)updateData {
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:kDailyExpressionFile]) {
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kJuZiList]];
+        AFHTTPRequestOperation *requestOperation = [[[AFHTTPRequestOperation alloc] initWithRequest:request] autorelease];
+        [requestOperation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+            
+            NSError *error = nil;
+            //HTMLParser *parser = [[HTMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:kJuZiList] error:&error];
+            HTMLParser *parser = [[HTMLParser alloc] initWithData:responseObject error:&error];
+            
+            if (error) {
+                NSLog(@"Error: %@", error);
+                return;
+            }
+            
+            HTMLNode *bodyNode = [parser body];
+            NSArray *aNodes = [bodyNode findChildTags:@"a"];
+            NSMutableArray *result = [[NSMutableArray alloc] init];
+            for (HTMLNode *aNode in aNodes) {
+                if ([[aNode getAttributeNamed:@"href"] hasPrefix:@"s.php?"]) {
+                    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[aNode getAttributeNamed:@"href"], @"href", [aNode contents], @"text", nil];
+                    [result addObject:dict];
+                }
+            }
+            [parser release];
+            if (result.count > 0) {
+                self.listArray = result;
+                [result writeToFile:kDailyExpressionFile atomically:YES];
+            }
+            [result release];
+            [self.tableView reloadData];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
+        [requestOperation start];
+    }
+    else {
+        self.listArray = [[[NSArray alloc] initWithContentsOfFile:kDailyExpressionFile] autorelease];
+    }
 }
 
 #pragma mark - Table view data source

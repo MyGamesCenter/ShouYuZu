@@ -18,8 +18,10 @@
 
 //服务器URL
 #define kServerURL @"http://www.52shouyu.com/"
+//日常用语列表页
+#define kJuZiList @"http://www.52shouyu.com/juzi.htm"
 //词汇列表页
-#define kCiHuiList @"menu.php"
+#define kCiHuiList @"http://www.52shouyu.com/menu.php"
 
 //日常用语文件
 #define kDailyExpressionFile [DATA_FOLDER stringByAppendingPathComponent:@"dailyexpression.plist"]

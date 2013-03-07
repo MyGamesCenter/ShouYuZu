@@ -13,4 +13,6 @@
 @property (nonatomic, retain)NSString *inputText;
 @property (nonatomic, retain)UIWebView *webView;
 
+- (void)translate;
+
 @end

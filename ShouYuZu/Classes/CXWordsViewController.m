@@ -14,6 +14,8 @@
 
 @property (nonatomic, retain)NSArray *listArray;
 
+- (void)updateData;
+
 @end
 
 @implementation CXWordsViewController
@@ -48,36 +50,6 @@
 {
     [super viewDidLoad];
 
-    
-    if (![[NSFileManager defaultManager] fileExistsAtPath:kWordsFile]) {
-        
-        NSError *error = nil;
-        HTMLParser *parser = [[HTMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:@"http://www.52shouyu.com/menu.php"] error:&error];
-        
-        if (error) {
-            NSLog(@"Error: %@", error);
-            return;
-        }
-        
-        HTMLNode *bodyNode = [parser body];
-        NSArray *aNodes = [bodyNode findChildTags:@"a"];
-        NSMutableArray *result = [[NSMutableArray alloc] init];
-        for (HTMLNode *aNode in aNodes) {
-            if ([[aNode getAttributeNamed:@"href"] hasPrefix:@"ci.php?"]) {
-                NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[aNode getAttributeNamed:@"href"], @"href", [aNode contents], @"text", nil];
-                [result addObject:dict];
-            }
-        }
-        [parser release];
-        if (result.count > 0) {
-            self.listArray = result;
-            [result writeToFile:kWordsFile atomically:YES];
-            [result release];
-        }
-    }
-    else {
-        self.listArray = [[[NSArray alloc] initWithContentsOfFile:kWordsFile] autorelease];
-    }
 }
 
 - (void)viewDidUnload
@@ -90,6 +62,7 @@
 - (void)viewWillAppear:(BOOL)animated
 {
     [super viewWillAppear:animated];
+    [self updateData];
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -111,6 +84,48 @@
 {
     // Return YES for supported orientations
     return (interfaceOrientation == UIInterfaceOrientationPortrait);
+}
+
+- (void)updateData {
+    
+    if (![[NSFileManager defaultManager] fileExistsAtPath:kWordsFile]) {
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:kCiHuiList]];
+        AFHTTPRequestOperation *requestOperation = [[[AFHTTPRequestOperation alloc] initWithRequest:request] autorelease];
+        [requestOperation setCompletionBlockWithSuccess:^(AFHTTPRequestOperation *operation, id responseObject) {
+            
+            NSError *error = nil;
+            //HTMLParser *parser = [[HTMLParser alloc] initWithContentsOfURL:[NSURL URLWithString:kCiHuiList] error:&error];
+            HTMLParser *parser = [[HTMLParser alloc] initWithData:responseObject error:&error];
+            
+            if (error) {
+                NSLog(@"Error: %@", error);
+                return;
+            }
+            
+            HTMLNode *bodyNode = [parser body];
+            NSArray *aNodes = [bodyNode findChildTags:@"a"];
+            NSMutableArray *result = [[NSMutableArray alloc] init];
+            for (HTMLNode *aNode in aNodes) {
+                if ([[aNode getAttributeNamed:@"href"] hasPrefix:@"ci.php?"]) {
+                    NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:[aNode getAttributeNamed:@"href"], @"href", [aNode contents], @"text", nil];
+                    [result addObject:dict];
+                }
+            }
+            [parser release];
+            if (result.count > 0) {
+                self.listArray = result;
+                [result writeToFile:kWordsFile atomically:YES];
+            }
+            [result release];
+            [self.tableView reloadData];
+        } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+            NSLog(@"Error: %@", error);
+        }];
+        [requestOperation start];
+    }
+    else {
+        self.listArray = [[[NSArray alloc] initWithContentsOfFile:kWordsFile] autorelease];
+    }
 }
 
 #pragma mark - Table view data source
